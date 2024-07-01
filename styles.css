@@ -1,0 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e0f7fa; /* Changed background color */
+    color: #333; /* Changed text color for better readability */
+}
+
+#container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 40px;
+    background-color: #ffffff; /* Added a white background to the container */
+    border-radius: 10px; /* Optional: Add rounded corners to the container */
+}
+
+h1 {
+    text-align: center;
+    color: #00796b; /* Changed heading color */
+    padding-bottom: 20px;
+}
+
+#stations-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.station {
+    border: 1px solid #b2dfdb; /* Changed border color */
+    border-radius: 8px;
+    padding: 20px;
+    margin: 8px;
+    width: 300px;
+    box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff; /* Changed background color */
+}
+
+.station h2 {
+    margin-top: 0;
+    color: #004d40; /* Changed station heading color */
+}
+
+.station p {
+    margin: 8px 0;
+    color: #555; /* Changed paragraph text color */
+}

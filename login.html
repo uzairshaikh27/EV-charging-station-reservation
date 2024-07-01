@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #container {
+            width: 300px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        p {
+            margin: 10px 0;
+        }
+        a {
+            color: #007bff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="register-form" style="display: none;">
+            <h2>Register</h2>
+            <input type="text" id="register-username" placeholder="Username"><br>
+            <input type="email" id="register-email" placeholder="Email"><br>
+            <input type="text" id="register-mobile" placeholder="Mobile"><br>
+            <input type="password" id="register-password" placeholder="Password"><br>
+            <button onclick="register()">Register</button>
+            <p>Already have an account? <a onclick="showLogin()">Login now</a></p>
+        </div>
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="email" id="login-email" placeholder="Email"><br>
+            <input type="password" id="login-password" placeholder="Password"><br>
+            <button onclick="login()">Login</button>
+            <p>New User? <a onclick="showRegister()">Register now</a></p>
+        </div>
+    </div>
+
+    <script>
+        function showRegister() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+        }
+
+        function showLogin() {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+        }
+
+        async function register() {
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const mobile = document.getElementById('register-mobile').value;
+            const password = document.getElementById('register-password').value;
+
+            const response = await fetch('http://127.0.0.1:5000/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, mobile, password })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                showLogin();
+            } else {
+                alert(result.error || 'Registration failed');
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const response = await fetch('http://127.0.0.1:5000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+            // if (response.ok) {
+            //     alert('LogiXXXXn successful');
+            //     window.location.href = '/stations.html';  // Redirect to EV stations page
+            // } else {
+            //     alert(result.error || 'Login failed');
+            // }
+            if (result.user_id) {
+                    // Save the user ID to session storage
+                    sessionStorage.setItem('user_id', result.user_id);
+                    // Redirect to the stations page
+                    window.location.href = '/stations.html';
+                } else {
+                    alert(result.error);
+                }
+        }
+    </script>
+</body>
+</html>

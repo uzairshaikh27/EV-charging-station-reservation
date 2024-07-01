@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Charging Station Reservation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        #container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        #stations-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        #search-input {
+            padding: 10px;
+            width: 50%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        #search-button {
+            padding: 10px;
+            border: none;
+            background-color: #399930;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .station {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 8px;
+            width: 300px;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        .station h2 {
+            margin-top: 0;
+        }
+        .station .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+        .viewmap-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #0056b3;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .reserve-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #399930;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .viewmap-button:hover {
+            background-color: #004494;
+        }
+        .station p {
+            margin: 4px 0;
+        }
+        .reservation-form {
+            display: none;
+            margin-top: 16px;
+        }
+    </style>
+    <script  async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0lcF0l6Pvi04LSd9V5kJYwfd_zglTQEIY&loading=async&callback=initMap&libraries=marker"></script>
+</head>
+<body>
+    <div id="container">
+        <h1>EV Charging Stations</h1>
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Search by location (address, state, pincode)">
+            <button id="search-button" onclick="searchStations()">Search</button>
+        </div>
+        <div id="stations-container"></div>
+
+    </div>
+    <div id="map" style="width: 100%; height: 400px; display: none;"></div>
+    
+    <script>
+        let map;
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 0, lng: 0 },
+        zoom: 2,
+        mapId: 'DEMO_MAP_ID'  // Use your actual map ID if available
+
+    });
+}
+        async function fetchStations(searchQuery = '') {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/stations2?search=${searchQuery}`);
+                const stations = await response.json();
+                const container = document.getElementById('stations-container');
+                container.innerHTML = '';
+
+                stations.forEach(station => {
+                    const stationDiv = document.createElement('div');
+                    stationDiv.className = 'station';
+                    stationDiv.innerHTML = `
+                        <h2>${station.name}</h2>
+                        <p><b>${station.address}</b></p>
+                        <p><b>${station.state}, ${station.pincode}</b></p>
+                        <p>Latitude: ${station.latitude}</p>
+                        <p>Longitude: ${station.longitude}</p>
+                        <p>Available Slots: ${station.available_slots}</p>
+                        <p>Total Slots: ${station.total_slots}</p>
+                        <div class="button-container">
+        <div class="view-on-map-button">
+            <button class="viewmap-button" onclick="viewOnMap(${station.latitude}, ${station.longitude})">View On Map</button>
+        </div>
+        <div class="reservation-button-container">
+            <button class="reserve-button" onclick="showReservationForm(${station.id})">Reserve</button>
+        </div>
+    </div>
+                        
+                        <div class="reservation-form" id="form-${station.id}">
+                            <h3>Make a Reservation</h3>
+                            <input type="text" id="name-${station.id}" placeholder="Your Name">
+                            <input type="text" id="contact-${station.id}" placeholder="Your Contact">
+                            <input type="datetime-local" id="time-${station.id}">
+                            <button onclick="makeReservation(${station.id})">Submit</button>
+                        </div>
+                    `;
+                    container.appendChild(stationDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching stations:', error);
+            }
+        }
+
+
+        async function viewOnMap(latitude, longitude) {
+            const mapDiv = document.getElementById('map');
+            mapDiv.style.display = 'flex';
+            map.setCenter({ lat: latitude, lng: longitude });
+            map.setZoom(15);
+            
+            new google.maps.marker.AdvancedMarkerElement({
+                map: map,
+                position: { lat: latitude, lng: longitude },
+                title: "Charging Station"
+            });
+        }
+        function showReservationForm(stationId) {
+            const form = document.getElementById(`form-${stationId}`);
+            form.style.display = 'block';
+        }
+
+        async function makeReservation(stationId) {
+            const name = document.getElementById(`name-${stationId}`).value;
+            const contact = document.getElementById(`contact-${stationId}`).value;
+            const time = document.getElementById(`time-${stationId}`).value;
+
+            if (!name || !contact || !time) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/reservations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        station_id: stationId,
+                        user_name: name,
+                        user_contact: contact,
+                        reservation_time: time.replace('T', ' ')
+                    })
+                });
+
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                console.error('Error making reservation:', error);
+                alert('Failed to make reservation. Please try again.');
+            }
+        }
+        function searchStations() {
+            const searchQuery = document.getElementById('search-input').value;
+            fetchStations(searchQuery);
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = sessionStorage.getItem('user_id');
+            if (!userId) {
+                window.location.href = 'login.html';
+            } else {
+                fetchStations();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
