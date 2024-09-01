@@ -176,7 +176,7 @@ def login():
         user = cursor.fetchone()
         cursor.close()
 
-        # if user and user['password']== password:
+        
         if checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
     
             session['user_id'] = user['id']
